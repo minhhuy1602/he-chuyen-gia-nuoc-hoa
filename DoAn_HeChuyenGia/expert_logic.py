@@ -14,60 +14,67 @@ class ChuyenGiaNuocHoa(KnowledgeEngine):
     def __init__(self):
         super().__init__()
         self.nhom_huong_de_xuat = [] 
-        self.ly_do = "" 
+        self.ly_do_list = [] # Chuyển thành list để cộng dồn các bước suy luận
 
     @DefFacts()
     def _initial_action(self):
         yield Fact(action="tu_van")
 
     # ==========================================
-    # NHÓM LUẬT 1: SỰ KIỆN QUAN TRỌNG & HẸN HÒ
+    # TẦNG 1: LUẬT NỀN (BASE RULES) - Đảm bảo luôn có ít nhất 1 luật kích hoạt
     # ==========================================
     
-    @Rule(ThongTinNguoiDung(gioi_tinh='Nam', hoan_canh=L('Hẹn hò') | L('Tiệc tùng'), phong_cach=L('Bí ẩn, Quyến rũ')))
-    def luat_nam_badboy_date(self):
-        self.nhom_huong_de_xuat.extend(['Ngọt ngào', 'Gia vị'])
-        self.ly_do = "Với phong cách bí ẩn và không gian tiệc tùng/hẹn hò, các note hương Gia vị ấm (như Quế, Tiêu) hoặc Ngọt ngào (Vanilla, Khói) sẽ tạo ra sự cuốn hút chết người, cực kỳ bám tỏa."
+    @Rule(ThongTinNguoiDung(hoan_canh=L('Hẹn hò') | L('Tiệc tùng')))
+    def luat_nen_henho_tiectung(self):
+        self.nhom_huong_de_xuat.extend(['Ngọt ngào', 'Gia vị', 'Phấn'])
+        self.ly_do_list.append("🎯 **Mục đích:** Không gian tiệc tùng/hẹn hò cần sự nổi bật. Kích hoạt nhóm hương có độ bám tỏa cao (Ngọt ngào, Gia vị, Phấn).")
 
-    @Rule(ThongTinNguoiDung(gioi_tinh='Nữ', hoan_canh=L('Hẹn hò'), phong_cach=L('Thanh lịch, Nhẹ nhàng')))
-    def luat_nu_goodgirl_date(self):
-        self.nhom_huong_de_xuat.extend(['Hoa cỏ', 'Phấn'])
-        self.ly_do = "Một buổi hẹn hò với phong cách thanh lịch rất cần sự tinh tế. Hệ chuyên gia ưu tiên nhóm Hoa cỏ trắng hoặc Phấn (Powdery) để tạo lớp hương mềm mại, lướt nhẹ qua mũi đối phương mà không bị gắt."
+    @Rule(ThongTinNguoiDung(hoan_canh=L('Đi làm') | L('Đa dụng')))
+    def luat_nen_congso(self):
+        self.nhom_huong_de_xuat.extend(['Tươi mát', 'Gỗ', 'Hoa cỏ'])
+        self.ly_do_list.append("🎯 **Mục đích:** Môi trường làm việc/hàng ngày cần sự tinh tế. Lựa chọn nhóm hương an toàn, thanh lịch (Tươi mát, Gỗ, Hoa cỏ nhẹ).")
+
+    @Rule(ThongTinNguoiDung(hoan_canh=L('Hoạt động ngoài trời')))
+    def luat_nen_outdoor(self):
+        self.nhom_huong_de_xuat.extend(['Tươi mát', 'Trái cây'])
+        self.ly_do_list.append("🎯 **Mục đích:** Hoạt động mạnh sinh nhiệt. Ưu tiên tuyệt đối nhóm Tươi mát, Trái cây để tạo cảm giác sảng khoái, không gây ngợp.")
 
     # ==========================================
-    # NHÓM LUẬT 2: ĐỜI SỐNG HÀNG NGÀY & CÔNG VIỆC
+    # TẦNG 2: LUẬT BỔ SUNG MÙA/THỜI TIẾT (MODIFIERS)
     # ==========================================
     
-    @Rule(ThongTinNguoiDung(hoan_canh=L('Đi làm') | L('Đa dụng'), phong_cach=L('Độc lập, Tĩnh lặng')))
-    def luat_lam_viec_mot_minh(self):
-        self.nhom_huong_de_xuat.extend(['Gỗ', 'Trái cây'])
-        self.ly_do = "Khi bạn làm việc độc lập hoặc tận hưởng không gian riêng, một mùi hương Gỗ trầm ấm (Sandalwood/Cedar) hoặc Trái cây dịu nhẹ sẽ giúp tăng cường sự tập trung và mang lại cảm giác thư giãn tuyệt đối cho chính bản thân bạn."
+    @Rule(ThongTinNguoiDung(mua=L('Thu Đông')))
+    def luat_mua_lanh(self):
+        self.nhom_huong_de_xuat.extend(['Gỗ', 'Gia vị'])
+        self.ly_do_list.append("⛅ **Thời tiết:** Không khí lạnh làm mùi hương khó tỏa. Bổ sung thêm note Gỗ/Gia vị để tạo độ ấm áp và lưu hương lâu hơn trên da.")
 
-    @Rule(ThongTinNguoiDung(gioi_tinh='Nam', hoan_canh=L('Đi làm'), phong_cach=L('Năng động, Thể thao'), mua=L('Xuân Hạ')))
-    def luat_nam_office_nangdong(self):
+    @Rule(ThongTinNguoiDung(mua=L('Xuân Hạ')))
+    def luat_mua_nong(self):
         self.nhom_huong_de_xuat.extend(['Tươi mát'])
-        self.ly_do = "Môi trường công sở cộng với cá tính năng động vào mùa nóng đòi hỏi một mùi hương cực kỳ 'Fresh'. Nhóm Tươi mát (Biển cả/Citrus) là sự lựa chọn duy nhất để giữ cơ thể luôn sảng khoái."
+        self.ly_do_list.append("⛅ **Thời tiết:** Trời nóng dễ làm mùi hương bị nồng gắt. Hệ thống tự động tăng cường các note Tươi mát (Aquatic/Citrus) để cân bằng.")
 
     # ==========================================
-    # NHÓM LUẬT 3: HOẠT ĐỘNG NGOÀI TRỜI (EXTREME)
+    # TẦNG 3: LUẬT TINH CHỈNH PHONG CÁCH (FINE-TUNING)
     # ==========================================
     
-    @Rule(ThongTinNguoiDung(hoan_canh=L('Hoạt động ngoài trời'), phong_cach=L('Năng động, Thể thao')))
-    def luat_outdoor_trekking(self):
-        self.nhom_huong_de_xuat.extend(['Tươi mát', 'Gỗ'])
-        self.ly_do = "Khi đối mặt với các chuyến trekking băng rừng rậm hay leo dốc đá, cơ thể vận động liên tục. Sự kết hợp giữa Gỗ (tạo độ bám dai dẳng) và Tươi mát (khử mùi, tạo sinh lực) sẽ là áo giáp hoàn hảo cho chuyến đi cùng những người bạn."
+    @Rule(ThongTinNguoiDung(phong_cach=L('Bí ẩn, Quyến rũ')))
+    def luat_pc_quyenru(self):
+        self.nhom_huong_de_xuat.extend(['Ngọt ngào', 'Gỗ'])
+        self.ly_do_list.append("🎩 **Phong cách:** Để tôn lên sự bí ẩn và quyến rũ, điểm xuyết thêm các note trầm ấm, có chiều sâu.")
+
+    @Rule(ThongTinNguoiDung(phong_cach=L('Độc lập, Tĩnh lặng')))
+    def luat_pc_tinhlang(self):
+        self.nhom_huong_de_xuat.extend(['Gỗ', 'Hoa cỏ'])
+        self.ly_do_list.append("🧘 **Phong cách:** Hướng tới sự tĩnh lặng, an yên. Các note Gỗ đàn hương hoặc Hoa cỏ khô sẽ giúp thư giãn tinh thần.")
 
     # ==========================================
-    # NHÓM LUẬT 4: LUẬT CẢNH BÁO / ĐIỀU CHỈNH (Ngoại lệ)
+    # XUẤT KẾT QUẢ ĐÃ LỌC
     # ==========================================
-    
-    # Nếu chọn ngọt ngào/gia vị cho mùa Hạ hoặc đi làm -> Hệ thống tự động bẻ lái
-    @Rule(ThongTinNguoiDung(mua=L('Xuân Hạ'), hoan_canh=L('Đi làm') | L('Đa dụng')))
-    def luat_canh_bao_mua_nong(self):
-        # Nới lỏng kết quả bằng cách thêm các nhóm an toàn
-        self.nhom_huong_de_xuat.extend(['Tươi mát', 'Hoa cỏ'])
-        # Thêm một note nhỏ vào lý do
-        self.ly_do += " (Lưu ý: Hệ thống đã tự động lọc bớt các mùi hương quá nồng ngọt vì thời tiết Xuân Hạ hoặc môi trường kín sẽ gây khó chịu cho người xung quanh)."
-
     def lay_ket_qua(self):
-        return list(set(self.nhom_huong_de_xuat)), self.ly_do
+        # Lọc bỏ các nhóm hương trùng lặp do nhiều luật cùng đẩy vào
+        ket_qua_loai_trung = list(set(self.nhom_huong_de_xuat))
+        
+        # Nối các lý do lại thành một đoạn văn bản hoàn chỉnh
+        ly_do_tong_hop = "\n\n".join(self.ly_do_list)
+        
+        return ket_qua_loai_trung, ly_do_tong_hop

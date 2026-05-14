@@ -1,5 +1,9 @@
 import collections
 import collections.abc
+import os
+
+# Lấy vị trí chính xác của file app.py hiện tại làm gốc
+THU_MUC_GOC = os.path.dirname(os.path.abspath(__file__))
 collections.Mapping = collections.abc.Mapping
 collections.MutableMapping = collections.abc.MutableMapping
 collections.Iterable = collections.abc.Iterable
@@ -15,11 +19,14 @@ def lay_duong_dan_anh(ten_nuoc_hoa):
     """Hàm tự động tạo tên file ảnh từ tên nước hoa"""
     # Xóa dấu tiếng Việt, chuyển chữ thường, thay khoảng trắng bằng '_'
     ten_khong_dau = unidecode.unidecode(ten_nuoc_hoa).lower()
+    # ...
     ten_file = ten_khong_dau.replace(" ", "_").replace("'", "").replace("&", "")
     
-    path_jpg = f"images/{ten_file}.jpg"
-    path_png = f"images/{ten_file}.png"
-    path_webp = f"images/{ten_file}.webp"
+    # Dùng os.path.join để hệ thống tự dò đúng đường dẫn tuyệt đối
+    path_jpg = os.path.join(THU_MUC_GOC, "images", f"{ten_file}.jpg")
+    path_png = os.path.join(THU_MUC_GOC, "images", f"{ten_file}.png")
+    path_webp = os.path.join(THU_MUC_GOC, "images", f"{ten_file}.webp")
+    # ...
     
     if os.path.exists(path_jpg): return path_jpg
     if os.path.exists(path_png): return path_png
@@ -34,7 +41,9 @@ st.markdown("Hệ thống sử dụng **Cơ sở tri thức** và **Suy diễn t
 st.divider()
 
 # Đọc dữ liệu
-df = pd.read_csv("data_nuochoa.csv")
+# Gọi đúng file CSV nằm cùng thư mục với app.py
+duong_dan_csv = os.path.join(THU_MUC_GOC, "data_nuochoa.csv")
+df = pd.read_csv(duong_dan_csv)
 
 # Bố cục 2 cột cho Form nhập liệu
 col1, col2 = st.columns(2)

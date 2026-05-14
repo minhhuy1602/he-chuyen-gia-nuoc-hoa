@@ -70,7 +70,7 @@ if st.button("🚀 Phân Tích & Đưa Ra Gợi Ý", use_container_width=True):
         # 1. Khởi tạo và chạy Động cơ suy diễn
         engine = ChuyenGiaNuocHoa()
         engine.reset() # Bắt buộc phải có để reset facts
-        engine.declare(ThongTinNguoiDung(gioi_tinh=gioi_tinh, hoan_canh=hoan_canh, mua=mua, hoan_canh_hoan_canh))
+        engine.declare(ThongTinNguoiDung(gioi_tinh=gioi_tinh, hoan_canh=hoan_canh, mua=mua, phong_cach=phong_cach))
         engine.run()
         
         nhom_huong_suy_ra = engine.lay_ket_qua()

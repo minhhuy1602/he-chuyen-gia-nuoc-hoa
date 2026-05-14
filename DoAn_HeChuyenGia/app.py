@@ -105,7 +105,7 @@ if st.button("🚀 Phân Tích & Đưa Ra Gợi Ý", use_container_width=True):
                 with col_hien_tai:
                     # Gọi hàm lấy đường dẫn ảnh
                     img_path = lay_duong_dan_anh(row['Ten_Nuoc_Hoa'])
-                    
+                    st.write(f"Đường dẫn code đang tìm: `{img_path}`")
                     if img_path:
                         st.image(img_path, use_column_width=True)
                     else:

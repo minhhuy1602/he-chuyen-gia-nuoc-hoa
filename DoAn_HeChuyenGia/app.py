@@ -1,18 +1,20 @@
+# --- BẮT ĐẦU VÁ LỖI PYTHON 3.12 ---
 import collections
 import collections.abc
-import os
-
-# Lấy vị trí chính xác của file app.py hiện tại làm gốc
-THU_MUC_GOC = os.path.dirname(os.path.abspath(__file__))
 collections.Mapping = collections.abc.Mapping
 collections.MutableMapping = collections.abc.MutableMapping
 collections.Iterable = collections.abc.Iterable
 collections.Callable = collections.abc.Callable
+# --- KẾT THÚC VÁ LỖI ---
+
 import streamlit as st
 import pandas as pd
 import unidecode
 import os
 from expert_logic import ChuyenGiaNuocHoa, ThongTinNguoiDung
+
+# Lấy vị trí chính xác của file app.py hiện tại làm gốc (chống lỗi Cloud)
+THU_MUC_GOC = os.path.dirname(os.path.abspath(__file__))
 
 # --- HÀM HỖ TRỢ ---
 def lay_duong_dan_anh(ten_nuoc_hoa):
@@ -20,101 +22,142 @@ def lay_duong_dan_anh(ten_nuoc_hoa):
     ten_khong_dau = unidecode.unidecode(ten_nuoc_hoa).lower()
     ten_file = ten_khong_dau.replace(" ", "_").replace("'", "").replace("&", "")
     
-    # Xác định thư mục chứa ảnh
     thu_muc_anh = os.path.join(THU_MUC_GOC, "images")
-    
-    # Danh sách các biến thể đuôi file có thể xảy ra
     cac_duoi_file = ['.jpg', '.JPG', '.png', '.PNG', '.jpeg', '.JPEG', '.webp', '.WEBP']
     
     for duoi in cac_duoi_file:
         duong_dan = os.path.join(thu_muc_anh, f"{ten_file}{duoi}")
         if os.path.exists(duong_dan):
             return duong_dan
-            
-    return None # Trả về None nếu duyệt hết vẫn không thấy
+    return None 
 
 # --- GIAO DIỆN CHÍNH ---
 st.set_page_config(page_title="Hệ Chuyên Gia Nước Hoa", layout="wide")
 
-st.title("✨ Hệ Chuyên Gia Tư Vấn Nước Hoa Cá Nhân Hóa")
-st.markdown("Hệ thống sử dụng **Cơ sở tri thức** và **Suy diễn tiến (Forward Chaining)** để gợi ý mùi hương hoàn hảo cho bạn.")
+st.title("✨ Hệ Chuyên Gia Tư Vấn Nước Hoa AI")
+st.markdown("Đồ án tích hợp Cơ sở tri thức cùng hai cơ chế **Suy diễn tiến (Forward Chaining)** và **Suy diễn lùi (Backward Chaining)**.")
 st.divider()
 
 # Đọc dữ liệu
-# Gọi đúng file CSV nằm cùng thư mục với app.py
 duong_dan_csv = os.path.join(THU_MUC_GOC, "data_nuochoa.csv")
 df = pd.read_csv(duong_dan_csv)
 
-# Bố cục 2 cột cho Form nhập liệu
-col1, col2 = st.columns(2)
+# TẠO 2 TAB ĐỂ TRÌNH BÀY CHO HỘI ĐỒNG
+tab1, tab2 = st.tabs(["🚀 CƠ CHẾ SUY DIỄN TIẾN (Tìm kiếm)", "🔍 CƠ CHẾ SUY DIỄN LÙI (Kiểm định)"])
 
-with col1:
-    st.subheader("Trắc nghiệm cá nhân")
-    gioi_tinh = st.selectbox("Giới tính của bạn:", ["Nam", "Nữ", "Unisex"])
-    hoan_canh = st.selectbox("Mục đích sử dụng chính:", ["Đi làm", "Đa dụng", "Hẹn hò", "Tiệc tùng", "Hoạt động ngoài trời"])
-    mua = st.selectbox("Sử dụng vào thời tiết/mùa nào?", ["Xuân Hạ", "Thu Đông", "Mọi mùa"])
+# ==========================================
+# TAB 1: SUY DIỄN TIẾN (FORWARD CHAINING)
+# ==========================================
+with tab1:
+    st.header("Tư vấn Nước hoa cá nhân hóa")
+    col1, col2 = st.columns(2)
 
-with col2:
-    st.subheader("Bộ lọc bổ sung")
-    phong_cach = st.selectbox("Cá tính/Phong cách của bạn:", ["Thanh lịch, Nhẹ nhàng", "Bí ẩn, Quyến rũ", "Năng động, Thể thao", "Độc lập, Tĩnh lặng"])
-    # --------------------------
-    luu_huong = st.slider("Yêu cầu độ lưu hương:", 1, 3, 2, format="Mức %d")
-    dict_luuhuong = {1: "Trung bình", 2: "Lâu", 3: "Rất lâu"}
+    with col1:
+        gioi_tinh = st.selectbox("Giới tính của bạn:", ["Nam", "Nữ", "Unisex"], key="fw_gt")
+        hoan_canh = st.selectbox("Mục đích sử dụng chính:", ["Đi làm", "Đa dụng", "Hẹn hò", "Tiệc tùng", "Hoạt động ngoài trời"], key="fw_hc")
+        mua = st.selectbox("Thời tiết/mùa sử dụng:", ["Xuân Hạ", "Thu Đông", "Mọi mùa"], key="fw_mua")
 
-st.divider()
+    with col2:
+        phong_cach = st.selectbox("Cá tính/Phong cách:", ["Thanh lịch, Nhẹ nhàng", "Bí ẩn, Quyến rũ", "Năng động, Thể thao", "Độc lập, Tĩnh lặng"], key="fw_pc")
+        st.info("💡 Suy diễn tiến: Bắt đầu từ các **Sự kiện (Dữ liệu đầu vào)**, hệ thống sẽ kích hoạt các tập luật để đi đến **Kết luận (Gợi ý chai nước hoa)**.")
 
-# Nút kích hoạt hệ chuyên gia
-if st.button("🚀 Phân Tích & Đưa Ra Gợi Ý", use_container_width=True):
-    with st.spinner('Đang phân tích tập luật (rules)...'):
-        
-        # 1. Khởi tạo và chạy Động cơ suy diễn
-        engine = ChuyenGiaNuocHoa()
-        engine.reset() # Bắt buộc phải có để reset facts
-        engine.declare(ThongTinNguoiDung(gioi_tinh=gioi_tinh, hoan_canh=hoan_canh, mua=mua, phong_cach=phong_cach))
-        engine.run()
-        
-        nhom_huong_suy_ra = engine.lay_ket_qua()
-        
-       # Gọi hàm lấy kết quả
-        nhom_huong_suy_ra, ly_do_suy_dien = engine.lay_ket_qua()
-        
-        # 2. Xử lý kết quả logic
-        if not nhom_huong_suy_ra:
-            st.warning("Hệ thống chưa có luật cụ thể cho trường hợp này, hiển thị các lựa chọn an toàn nhất.")
-            nhom_huong_suy_ra = df['Nhom_Huong'].unique().tolist() 
-        else:
-            st.success(f"**Kết luận từ hệ chuyên gia:** Dựa trên profile, bạn phù hợp với các nhóm hương: {', '.join(nhom_huong_suy_ra)}")
-            st.info(f"🧠 **Giải thích logic suy diễn:** {ly_do_suy_dien}") # <--- DÒNG ĂN ĐIỂM
-        
-        # 3. Truy vấn Cơ sở tri thức (Lọc Dataframe)
-        df_ket_qua = df[
-            (df['Gioi_Tinh'] == gioi_tinh) &
-            (df['Nhom_Huong'].isin(nhom_huong_suy_ra))
-        ]
-        
-        # Nếu filter quá gắt (hết kết quả), nới lỏng giới tính (gợi ý Unisex)
-        if df_ket_qua.empty:
-             df_ket_qua = df[(df['Gioi_Tinh'] == 'Unisex') & (df['Nhom_Huong'].isin(nhom_huong_suy_ra))]
-             st.info("💡 Không tìm thấy chai đặc trưng cho giới tính của bạn, gợi ý chuyển sang dòng Unisex.")
+    if st.button("Chạy Suy Diễn Tiến", type="primary", use_container_width=True):
+        with st.spinner('Đang kích hoạt Động cơ suy diễn (Inference Engine)...'):
+            engine = ChuyenGiaNuocHoa()
+            engine.reset() 
+            engine.declare(ThongTinNguoiDung(gioi_tinh=gioi_tinh, hoan_canh=hoan_canh, mua=mua, phong_cach=phong_cach))
+            engine.run()
+            
+            nhom_huong_suy_ra, ly_do_suy_dien = engine.lay_ket_qua()
+            
+            if not nhom_huong_suy_ra:
+                st.warning("Hệ thống xử lý ngoại lệ: Không có luật khớp hoàn toàn, nới lỏng điều kiện an toàn.")
+                nhom_huong_suy_ra = df['Nhom_Huong'].unique().tolist() 
+            else:
+                st.success(f"**Kết luận:** Nhóm hương phù hợp nhất là: {', '.join(nhom_huong_suy_ra)}")
+                st.info(f"🧠 **Vết suy luận (Trace):**\n{ly_do_suy_dien}")
+            
+            # Lọc Database
+            df_ket_qua = df[(df['Gioi_Tinh'].isin([gioi_tinh, 'Unisex'])) & (df['Nhom_Huong'].isin(nhom_huong_suy_ra))]
 
-        # Hiển thị sản phẩm lên UI dạng lưới (Grid)
-        if not df_ket_qua.empty:
-            st.subheader("Khuyến nghị dành cho bạn:")
-            cols = st.columns(3) # Hiển thị 3 chai trên 1 hàng ngang
-            for index, row in df_ket_qua.iterrows():
-                col_hien_tai = cols[index % 3]
+            if not df_ket_qua.empty:
+                st.subheader("Sản phẩm gợi ý từ cơ sở tri thức:")
+                cols = st.columns(4) 
+                for index, row in df_ket_qua.iterrows():
+                    col_hien_tai = cols[index % 4]
+                    with col_hien_tai:
+                        img_path = lay_duong_dan_anh(row['Ten_Nuoc_Hoa'])
+                        if img_path:
+                            st.image(img_path, use_container_width=True)
+                        else:
+                            import urllib.parse
+                            ten_hien_thi = urllib.parse.quote(row['Ten_Nuoc_Hoa'])
+                            st.image(f"https://ui-avatars.com/api/?name={ten_hien_thi}&size=400&background=random&color=fff&font-size=0.25&length=3", use_container_width=True)
+                        st.markdown(f"**{row['Ten_Nuoc_Hoa']}**")
+                        st.caption(f"{row['Nhom_Huong']} | {row['Luu_Huong']}")
+
+# ==========================================
+# TAB 2: SUY DIỄN LÙI (BACKWARD CHAINING)
+# ==========================================
+with tab2:
+    st.header("Kiểm định Giả thuyết (Traced Backward Evaluation)")
+    
+    # Người dùng chọn giả thuyết (Goal)
+    danh_sach_nuoc_hoa = df['Ten_Nuoc_Hoa'].tolist()
+    muc_tieu = st.selectbox("🎯 Đặt Giả thuyết (Goal): Tôi muốn sử dụng chai nước hoa sau cho hôm nay:", danh_sach_nuoc_hoa)
+    
+    st.markdown("---")
+    st.subheader("Cung cấp dữ kiện hiện tại của bạn:")
+    col3, col4 = st.columns(2)
+    with col3:
+        user_gt = st.radio("Giới tính của bạn:", ["Nam", "Nữ"])
+    with col4:
+        user_hc = st.selectbox("Bạn định dùng nó để đi đâu?", ["Đi làm", "Đa dụng", "Hẹn hò", "Tiệc tùng", "Hoạt động ngoài trời"])
+        user_mua = st.selectbox("Thời tiết hôm nay thế nào?", ["Xuân Hạ", "Thu Đông"])
+
+    if st.button("Chạy Suy Diễn Lùi", type="primary", use_container_width=True):
+        st.markdown(f"### Phân giải cây logic cho mục tiêu: `{muc_tieu}`")
+        
+        # Truy xuất tập luật (facts) của chai nước hoa từ Cơ sở tri thức
+        thong_tin_chai = df[df['Ten_Nuoc_Hoa'] == muc_tieu].iloc[0]
+        dk_gioi_tinh = thong_tin_chai['Gioi_Tinh']
+        dk_hoan_canh = thong_tin_chai['Hoan_Canh']
+        dk_mua = thong_tin_chai['Mua']
+        
+        hop_le = True
+        
+        # BƯỚC 1: BACKTRACK GIỚI TÍNH
+        with st.expander("Giai đoạn 1: Xác minh Giới tính", expanded=True):
+            st.write(f"Đang tìm luật (Rule): Giới tính yêu cầu = `{dk_gioi_tinh}`")
+            if dk_gioi_tinh == 'Unisex' or user_gt == dk_gioi_tinh:
+                st.success(f"✅ Đạt. (Người dùng là {user_gt}, khớp với yêu cầu).")
+            else:
+                st.error(f"❌ Xung đột. (Chai này thiết kế cho {dk_gioi_tinh}, nhưng bạn là {user_gt}).")
+                hop_le = False
                 
-                with col_hien_tai:
-                    # Gọi hàm lấy đường dẫn ảnh
-                    img_path = lay_duong_dan_anh(row['Ten_Nuoc_Hoa'])
+        # BƯỚC 2: BACKTRACK HOÀN CẢNH
+        with st.expander("Giai đoạn 2: Xác minh Hoàn cảnh sử dụng", expanded=True):
+            st.write(f"Đang tìm luật (Rule): Hoàn cảnh tối ưu = `{dk_hoan_canh}`")
+            # Logic linh hoạt: Đa dụng thì dùng đâu cũng được
+            if dk_hoan_canh == 'Đa dụng' or user_hc == dk_hoan_canh or (user_hc == 'Đa dụng'):
+                st.success(f"✅ Đạt. (Hoàn cảnh '{user_hc}' phù hợp với yêu cầu '{dk_hoan_canh}').")
+            else:
+                st.warning(f"⚠️ Cảnh báo. (Bạn dự định đi '{user_hc}', nhưng sản phẩm này tối ưu nhất cho '{dk_hoan_canh}').")
+                hop_le = False
+
+        # BƯỚC 3: BACKTRACK THỜI TIẾT
+        with st.expander("Giai đoạn 3: Xác minh Thời tiết", expanded=True):
+            st.write(f"Đang tìm luật (Rule): Thời tiết khuyên dùng = `{dk_mua}`")
+            if dk_mua == 'Mọi mùa' or user_mua == dk_mua:
+                st.success(f"✅ Đạt. (Mùa '{user_mua}' hoàn hảo để hương thơm phát huy).")
+            else:
+                st.error(f"❌ Xung đột. (Dùng nước hoa mùa '{dk_mua}' trong thời tiết '{user_mua}' sẽ làm hỏng cấu trúc mùi).")
+                hop_le = False
                 
-                    if img_path:
-                        st.image(img_path, use_column_width=True)
-                    else:
-                        st.image("https://via.placeholder.com/300x400?text=No+Image", use_column_width=True) # Ảnh mặc định
-                        
-                    st.markdown(f"**{row['Ten_Nuoc_Hoa']}**")
-                    st.caption(f"Hương: {row['Nhom_Huong']} | Lưu hương: {row['Luu_Huong']}")
-                    st.write("---")
+        # KẾT LUẬN CUỐI CÙNG TỪ GOAL
+        st.markdown("---")
+        if hop_le:
+            st.balloons()
+            st.success(f"🎉 **KẾT LUẬN CUỐI CÙNG (GOAL REACHED):** Giả thuyết đúng! Bạn hoàn toàn có thể tự tin sử dụng **{muc_tieu}** cho ngày hôm nay.")
         else:
-            st.error("Rất tiếc, cơ sở tri thức hiện tại chưa có chai nào khớp hoàn toàn 100% với yêu cầu phức tạp này.")
+            st.error(f"⛔ **KẾT LUẬN CUỐI CÙNG (GOAL FAILED):** Giả thuyết sai! Dựa trên vết suy diễn lùi, **{muc_tieu}** không phải là sự lựa chọn an toàn cho bạn lúc này.")

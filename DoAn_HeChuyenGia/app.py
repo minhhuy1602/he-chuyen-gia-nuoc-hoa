@@ -56,6 +56,8 @@ with col1:
 
 with col2:
     st.subheader("Bộ lọc bổ sung")
+    phong_cach = st.selectbox("Cá tính/Phong cách của bạn:", ["Thanh lịch, Nhẹ nhàng", "Bí ẩn, Quyến rũ", "Năng động, Thể thao", "Độc lập, Tĩnh lặng"])
+    # --------------------------
     luu_huong = st.slider("Yêu cầu độ lưu hương:", 1, 3, 2, format="Mức %d")
     dict_luuhuong = {1: "Trung bình", 2: "Lâu", 3: "Rất lâu"}
 
@@ -68,7 +70,7 @@ if st.button("🚀 Phân Tích & Đưa Ra Gợi Ý", use_container_width=True):
         # 1. Khởi tạo và chạy Động cơ suy diễn
         engine = ChuyenGiaNuocHoa()
         engine.reset() # Bắt buộc phải có để reset facts
-        engine.declare(ThongTinNguoiDung(gioi_tinh=gioi_tinh, hoan_canh=hoan_canh, mua=mua))
+        engine.declare(ThongTinNguoiDung(gioi_tinh=gioi_tinh, hoan_canh=hoan_canh, mua=mua, hoan_canh_hoan_canh))
         engine.run()
         
         nhom_huong_suy_ra = engine.lay_ket_qua()

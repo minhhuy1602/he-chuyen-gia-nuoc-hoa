@@ -16,22 +16,22 @@ from expert_logic import ChuyenGiaNuocHoa, ThongTinNguoiDung
 
 # --- HÀM HỖ TRỢ ---
 def lay_duong_dan_anh(ten_nuoc_hoa):
-    """Hàm tự động tạo tên file ảnh từ tên nước hoa"""
-    # Xóa dấu tiếng Việt, chuyển chữ thường, thay khoảng trắng bằng '_'
+    """Hàm tự động tạo tên file ảnh từ tên nước hoa, chống lỗi phân biệt hoa/thường trên Cloud"""
     ten_khong_dau = unidecode.unidecode(ten_nuoc_hoa).lower()
-    # ...
     ten_file = ten_khong_dau.replace(" ", "_").replace("'", "").replace("&", "")
     
-    # Dùng os.path.join để hệ thống tự dò đúng đường dẫn tuyệt đối
-    path_jpg = os.path.join(THU_MUC_GOC, "images", f"{ten_file}.jpg")
-    path_png = os.path.join(THU_MUC_GOC, "images", f"{ten_file}.png")
-    path_webp = os.path.join(THU_MUC_GOC, "images", f"{ten_file}.webp")
-    # ...
+    # Xác định thư mục chứa ảnh
+    thu_muc_anh = os.path.join(THU_MUC_GOC, "images")
     
-    if os.path.exists(path_jpg): return path_jpg
-    if os.path.exists(path_png): return path_png
-    if os.path.exists(path_webp): return path_webp
-    return None # Trả về None nếu không tìm thấy ảnh
+    # Danh sách các biến thể đuôi file có thể xảy ra
+    cac_duoi_file = ['.jpg', '.JPG', '.png', '.PNG', '.jpeg', '.JPEG', '.webp', '.WEBP']
+    
+    for duoi in cac_duoi_file:
+        duong_dan = os.path.join(thu_muc_anh, f"{ten_file}{duoi}")
+        if os.path.exists(duong_dan):
+            return duong_dan
+            
+    return None # Trả về None nếu duyệt hết vẫn không thấy
 
 # --- GIAO DIỆN CHÍNH ---
 st.set_page_config(page_title="Hệ Chuyên Gia Nước Hoa", layout="wide")

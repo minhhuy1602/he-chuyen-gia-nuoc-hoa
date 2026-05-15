@@ -81,11 +81,35 @@ with tab1:
             df_ket_qua = df[(df['Gioi_Tinh'].isin([gioi_tinh, 'Unisex'])) & (df['Nhom_Huong'].isin(nhom_huong_suy_ra))]
 
             if not df_ket_qua.empty:
-                st.subheader("Sản phẩm gợi ý từ cơ sở tri thức:")
+                st.subheader("Sản phẩm gợi ý & Độ phù hợp:")
+                
+                # --- THUẬT TOÁN TÍNH % PHÙ HỢP ---
+                def tinh_diem_phu_hop(row, user_gt, user_hc, user_mua, nhom_huong_goi_y):
+                    score = 0
+                    # 1. Khớp nhóm hương (40đ)
+                    if row['Nhom_Huong'] in nhom_huong_goi_y: score += 40
+                    # 2. Khớp hoàn cảnh (25đ)
+                    if row['Hoan_Canh'] == user_hc or row['Hoan_Canh'] == 'Đa dụng': score += 25
+                    # 3. Khớp mùa (20đ)
+                    if row['Mua'] == user_mua or row['Mua'] == 'Mọi mùa': score += 20
+                    # 4. Khớp giới tính (15đ)
+                    if row['Gioi_Tinh'] == user_gt or row['Gioi_Tinh'] == 'Unisex': score += 15
+                    return score
+
+                # Tính điểm cho từng dòng
+                df_ket_qua['Diem'] = df_ket_qua.apply(lambda r: tinh_diem_phu_hop(r, gioi_tinh, hoan_canh, mua, nhom_huong_suy_ra), axis=1)
+                
+                # Sắp xếp chai có điểm cao nhất lên đầu
+                df_ket_qua = df_ket_qua.sort_values(by='Diem', ascending=False)
+
                 cols = st.columns(4) 
-                for index, row in df_ket_qua.iterrows():
+                for index, (idx_row, row) in enumerate(df_ket_qua.iterrows()):
                     col_hien_tai = cols[index % 4]
                     with col_hien_tai:
+                        # Hiển thị Badge % phù hợp
+                        color = "green" if row['Diem'] >= 80 else "orange"
+                        st.markdown(f"**<span style='color:{color}; font-size:20px;'>{row['Diem']}% Khớp</span>**", unsafe_allow_html=True)
+                        
                         img_path = lay_duong_dan_anh(row['Ten_Nuoc_Hoa'])
                         if img_path:
                             st.image(img_path, use_container_width=True)
@@ -93,7 +117,9 @@ with tab1:
                             import urllib.parse
                             ten_hien_thi = urllib.parse.quote(row['Ten_Nuoc_Hoa'])
                             st.image(f"https://ui-avatars.com/api/?name={ten_hien_thi}&size=400&background=random&color=fff&font-size=0.25&length=3", use_container_width=True)
+                        
                         st.markdown(f"**{row['Ten_Nuoc_Hoa']}**")
+                        st.progress(row['Diem'] / 100) # Thanh tiến trình nhỏ cho đẹp
                         st.caption(f"{row['Nhom_Huong']} | {row['Luu_Huong']}")
 
 # ==========================================
